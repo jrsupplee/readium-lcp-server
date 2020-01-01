@@ -118,11 +118,11 @@ func Open(db *sql.DB) (i Index, err error) {
 		db.Exec("ALTER TABLE content ADD COLUMN \"type\" varchar(255) NOT NULL DEFAULT 'application/epub+zip'")
 	}
 
-	get, err := db.Prepare("SELECT id,encryption_key,location,length,sha256 FROM content WHERE id = ? LIMIT 1")
+	get, err := db.Prepare("SELECT id,encryption_key,location,length,sha256,type FROM content WHERE id = ? LIMIT 1")
 	if err != nil {
 		return
 	}
-	list, err := db.Prepare("SELECT id,encryption_key,location,length,sha256 FROM content")
+	list, err := db.Prepare("SELECT id,encryption_key,location,length,sha256,type FROM content")
 	if err != nil {
 		return
 	}
