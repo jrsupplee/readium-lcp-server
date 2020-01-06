@@ -39,7 +39,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -188,18 +187,19 @@ func main() {
 		}
 		*contentid = uid.String()
 	}
-	var basefilename string
+	//var basefilename string
 	addedPublication.ContentId = *contentid
 	// if the output file name not set,
 	// then <content-id>.epub is created in the working directory
 	if *outputFilename == "" {
 		workingDir, _ := os.Getwd()
 		*outputFilename = strings.Join([]string{workingDir, string(os.PathSeparator), *contentid, ".epub"}, "")
-		basefilename = filepath.Base(*inputFilename)
+		//basefilename = filepath.Base(*inputFilename)
 	} else {
-		basefilename = filepath.Base(*outputFilename)
+		//basefilename = filepath.Base(*outputFilename)
 	}
-	addedPublication.ContentDisposition = &basefilename
+	//addedPublication.ContentDisposition = &basefilename
+	addedPublication.ContentDisposition = inputFilename
 	// the output path must be accessible from the license server
 	addedPublication.Output = *outputFilename
 
@@ -247,7 +247,7 @@ func main() {
 			addedPublication.ErrorMessage = "Error notifying the License Server"
 			exitWithError(addedPublication, err, 20)
 		} else {
-			os.Stdout.WriteString("License Server was notified\n")
+			os.Stderr.WriteString("License Server was notified\n")
 		}
 	}
 
@@ -258,6 +258,6 @@ func main() {
 		exitWithError(addedPublication, err, 10)
 	}
 	os.Stdout.Write(jsonBody)
-	os.Stdout.WriteString("\nEncryption was successful\n")
+	os.Stderr.WriteString("\nEncryption was successful\n")
 	os.Exit(0)
 }

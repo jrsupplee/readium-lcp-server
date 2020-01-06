@@ -182,6 +182,7 @@ func AddContent(w http.ResponseWriter, r *http.Request, s Server) {
 	}
 	if err != nil { //if db not updated
 		problem.Error(w, r, problem.Problem{Detail: err.Error()}, http.StatusInternalServerError)
+		s.Store().Remove(contentID)
 		return
 	}
 
