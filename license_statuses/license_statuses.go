@@ -87,11 +87,12 @@ func (i dbLicenseStatuses) Add(ls LicenseStatus) error {
 	statusDB, err := status.SetStatus(ls.Status)
 
 	if err == nil {
+		var end *time.Time
+		end = nil
 		if ls.PotentialRights != nil && ls.PotentialRights.End != nil && !(*ls.PotentialRights.End).IsZero() {
-			_, err = add.Exec(statusDB, ls.Updated.License, ls.Updated.Status, ls.DeviceCount, *ls.PotentialRights.End, ls.LicenseRef, ls.CurrentEndLicense)
-		} else {
-			_, err = add.Exec(statusDB, ls.Updated.License, ls.Updated.Status, ls.DeviceCount, nil, ls.LicenseRef, ls.CurrentEndLicense)
+			end = ls.PotentialRights.End
 		}
+		_, err = add.Exec(statusDB, ls.Updated.License, ls.Updated.Status, ls.DeviceCount, end, ls.LicenseRef, ls.CurrentEndLicense)
 	}
 
 	return err
