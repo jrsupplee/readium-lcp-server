@@ -83,8 +83,8 @@ func (p Packager) work() {
 		r := Result{}
 		p.genKey(&r)
 		zr := p.readZip(&r, t.Body, t.Size)
-		epub := p.readEpub(&r, zr)
-		encrypted, key := p.encrypt(&r, epub)
+		ep := p.readEpub(&r, zr)
+		encrypted, key := p.encrypt(&r, ep)
 		p.addToStore(&r, encrypted)
 		p.addToIndex(&r, key, t.Name, encrypted, epub.ContentType_EPUB)
 
