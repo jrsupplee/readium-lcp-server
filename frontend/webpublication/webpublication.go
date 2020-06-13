@@ -26,9 +26,9 @@ import (
 	"github.com/readium/readium-lcp-server/config"
 	"github.com/readium/readium-lcp-server/epub"
 	"github.com/readium/readium-lcp-server/lcpencrypt/encrypt"
-	"github.com/readium/readium-lcp-server/lcpserver/api"
+	apilcp "github.com/readium/readium-lcp-server/lcpserver/api"
 	"github.com/readium/readium-lcp-server/pack"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/Machiel/slugify"
 )
@@ -52,7 +52,7 @@ type WebPublication interface {
 	Update(publication Publication) error
 	Delete(id int64) error
 	List(page int, pageNum int) func() (Publication, error)
-	UploadEPUB(*http.Request, http.ResponseWriter, Publication)
+	Upload(*http.Request, http.ResponseWriter, Publication)
 	CheckByTitle(title string) (int64, error)
 }
 
@@ -119,10 +119,10 @@ func (pubManager PublicationManager) GetByUUID(uuid string) (Publication, error)
 	return Publication{}, ErrNotFound
 }
 
-// CheckByTitle checks if the publication exists or not, by its title
+// CheckByTitle checks if the title of a publication exists or not in the db
 //
 func (pubManager PublicationManager) CheckByTitle(title string) (int64, error) {
-	dbGetByTitle, err := pubManager.db.Prepare("SELECT CASE WHEN EXISTS (SELECT * FROM [publication] WHERE title = ?) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END")
+	dbGetByTitle, err := pubManager.db.Prepare("SELECT COUNT(1) FROM publication WHERE title = ?")
 	if err != nil {
 		return -1, err
 	}
@@ -131,8 +131,7 @@ func (pubManager PublicationManager) CheckByTitle(title string) (int64, error) {
 	records, err := dbGetByTitle.Query(title)
 	if records.Next() {
 		var res int64
-		err = records.Scan(
-			&res)
+		err = records.Scan(&res)
 		records.Close()
 
 		// returns 1 or 0
@@ -142,6 +141,8 @@ func (pubManager PublicationManager) CheckByTitle(title string) (int64, error) {
 	return -1, ErrNotFound
 }
 
+// BuildWebPubPackage builds a WebPub package
+//
 func BuildWebPubPackage(pub Publication, inputPath string, outputPath string) error {
 	return pack.BuildWebPubPackageFromPDF(pub.Title, inputPath, outputPath)
 }
@@ -266,14 +267,15 @@ func (pubManager PublicationManager) Add(pub Publication) error {
 		// the master file does not exist
 		return err
 	}
-	// encrypt the EPUB File and send the content to the LCP server
+	// encrypt the publication and send the content to the LCP server
 	return EncryptPublication(inputPath, pub, pubManager)
 }
 
-// UploadEPUB creates a new EPUB file, namd after a file form parameter.
-// a temp file is created then deleted.
+// Upload creates a new publication, named after a POST form parameter.
+// Encrypts a master File and sends the content to the LCP server.
+// A temp file is created then deleted.
 //
-func (pubManager PublicationManager) UploadEPUB(r *http.Request, w http.ResponseWriter, pub Publication) {
+func (pubManager PublicationManager) Upload(r *http.Request, w http.ResponseWriter, pub Publication) {
 
 	file, header, err := r.FormFile("file")
 
@@ -293,7 +295,7 @@ func (pubManager PublicationManager) UploadEPUB(r *http.Request, w http.Response
 	if err := tmpfile.Close(); err != nil {
 		log.Fatal(err)
 	}
-	// encrypt the EPUB File and send the content to the LCP server
+	// encrypt the publication and send the content to the LCP server
 	if err := EncryptPublication(tmpfile.Name(), pub, pubManager); err != nil {
 		log.Fatal(err)
 	}

@@ -1,5 +1,4 @@
-// Copyright 2017 European Digital Reading Lab. All rights reserved.
-// Licensed to the Readium Foundation under one or more contributor license agreements.
+// Copyright 2020 Readium Foundation. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file exposed on Github (readium) in the project repository.
 
@@ -11,10 +10,11 @@ import (
 	"encoding/hex"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"time"
 
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/readium/readium-lcp-server/crypto"
 	"github.com/readium/readium-lcp-server/epub"
@@ -80,6 +80,7 @@ type Packager struct {
 
 func (p Packager) work() {
 	for t := range p.Incoming {
+		log.Println("Packager working on an incoming EPUB, encryption task")
 		r := Result{}
 		p.genKey(&r)
 		zr := p.readZip(&r, t.Body, t.Size)
@@ -171,9 +172,10 @@ func (p Packager) addToIndex(r *Result, key []byte, name string, info *Encrypted
 		return
 	}
 
-	r.Error = p.idx.Add(index.Content{r.Id, key, name, info.Size, info.Sha256, contentType})
+	r.Error = p.idx.Add(index.Content{Id: r.Id, EncryptionKey: key, Location: name, Length: info.Size, Sha256: info.Sha256, Type: contentType})
 }
 
+// NewPackager waits for incoming EPUB files, encrypts them and adds them to the store
 func NewPackager(store storage.Store, idx index.Index, concurrency int) *Packager {
 	packager := Packager{
 		Incoming: make(chan *Task),

@@ -94,9 +94,8 @@ func GetPublication(w http.ResponseWriter, r *http.Request, s IServer) {
 	if pub, err := s.PublicationAPI().Get(int64(id)); err == nil {
 		enc := json.NewEncoder(w)
 		if err = enc.Encode(pub); err == nil {
-			// send json of correctly encoded user info
+			// send a json serialization of the publication
 			w.Header().Set("Content-Type", api.ContentType_JSON)
-			w.WriteHeader(http.StatusOK)
 			return
 		}
 		problem.Error(w, r, problem.Problem{Detail: err.Error()}, http.StatusInternalServerError)
@@ -124,9 +123,8 @@ func CheckPublicationByTitle(w http.ResponseWriter, r *http.Request, s IServer) 
 	if pub, err := s.PublicationAPI().CheckByTitle(string(title)); err == nil {
 		enc := json.NewEncoder(w)
 		if err = enc.Encode(pub); err == nil {
-			// send json of correctly encoded user info
+			// send a json serialization of the boolean response
 			w.Header().Set("Content-Type", api.ContentType_JSON)
-			w.WriteHeader(http.StatusOK)
 			return
 		}
 		problem.Error(w, r, problem.Problem{Detail: err.Error()}, http.StatusInternalServerError)
@@ -175,11 +173,11 @@ func CreatePublication(w http.ResponseWriter, r *http.Request, s IServer) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-//UploadEPUB creates a new EPUB file
-func UploadEPUB(w http.ResponseWriter, r *http.Request, s IServer) {
+// UploadPublication creates a new publication via a POST request
+func UploadPublication(w http.ResponseWriter, r *http.Request, s IServer) {
 	var pub webpublication.Publication
 	pub.Title = r.URL.Query()["title"][0]
-	s.PublicationAPI().UploadEPUB(r, w, pub)
+	s.PublicationAPI().Upload(r, w, pub)
 }
 
 // UpdatePublication updates an identified publication (id) in the database
