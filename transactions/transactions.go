@@ -167,12 +167,12 @@ func Open(db *sql.DB) (t Transactions, err error) {
 	}
 
 	// select an event by its id
-	get, err := db.Prepare("SELECT * FROM event WHERE id = ? LIMIT 1")
+	get, err := db.Prepare("SELECT id, device_name, timestamp, `type`, device_id, license_status_fk FROM event WHERE id = ? LIMIT 1")
 	if err != nil {
 		return
 	}
 
-	getbylicensestatusid, err := db.Prepare("SELECT * FROM event WHERE license_status_fk = ?")
+	getbylicensestatusid, err := db.Prepare("SELECT id, device_name, timestamp, `type`, device_id, license_status_fk FROM event WHERE license_status_fk = ?")
 
 	// the status of a device corresponds to the latest event stored in the db.
 	checkdevicestatus, err := db.Prepare(`SELECT type FROM event WHERE license_status_fk = ?

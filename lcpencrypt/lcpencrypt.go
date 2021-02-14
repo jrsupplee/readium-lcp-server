@@ -386,7 +386,7 @@ func main() {
 			pub.ErrorMessage = "Error notifying the License Server"
 			exitWithError(pub, err, 60)
 		} else {
-			os.Stdout.WriteString("License Server was notified\n")
+			os.Stderr.WriteString("License Server was notified\n")
 		}
 	}
 
@@ -397,6 +397,6 @@ func main() {
 		exitWithError(pub, err, 70)
 	}
 	os.Stdout.Write(jsonBody)
-	os.Stdout.WriteString("\nEncryption was successful\n")
+	os.Stderr.WriteString("\nEncryption was successful\n")
 	os.Exit(0)
 }

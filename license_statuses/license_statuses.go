@@ -195,7 +195,7 @@ func Open(db *sql.DB) (l LicenseStatuses, err error) {
 		}
 	}
 
-	get, err := db.Prepare("SELECT * FROM license_status WHERE id = ? LIMIT 1")
+	get, err := db.Prepare("SELECT id, status, license_updated, status_updated, device_count, potential_rights_end, license_ref, rights_end FROM license_status WHERE id = ? LIMIT 1")
 	if err != nil {
 		return
 	}
@@ -203,7 +203,7 @@ func Open(db *sql.DB) (l LicenseStatuses, err error) {
 	list, err := db.Prepare(`SELECT id, status, license_updated, status_updated, device_count, license_ref FROM license_status WHERE device_count >= ?
 		ORDER BY id DESC LIMIT ? OFFSET ?`)
 
-	getbylicenseid, err := db.Prepare("SELECT * FROM license_status where license_ref = ?")
+	getbylicenseid, err := db.Prepare("SELECT id, status, license_updated, status_updated, device_count, potential_rights_end, license_ref, rights_end FROM license_status where license_ref = ?")
 
 	if err != nil {
 		return
