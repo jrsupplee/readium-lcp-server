@@ -162,7 +162,6 @@ func Initialize(contentID string, l *License) {
 }
 
 // CreateDefaultLinks inits the global var DefaultLinks from config data
-// ... DefaultLinks used in several places.
 func CreateDefaultLinks() {
 
 	configLinks := config.Config.License.Links
@@ -174,8 +173,8 @@ func CreateDefaultLinks() {
 	}
 }
 
-// SetDefaultLinks sets a Link array from config links
-func SetDefaultLinks() []Link {
+// setDefaultLinks sets a Link array from config links
+func setDefaultLinks() []Link {
 
 	links := new([]Link)
 	for key := range DefaultLinks {
@@ -185,15 +184,35 @@ func SetDefaultLinks() []Link {
 	return *links
 }
 
+// appendDefaultLinks appends default links to custom links
+func appendDefaultLinks(inLinks *[]Link) []Link {
+
+	if *inLinks == nil {
+		// if there are no custom links in the partial license, set default links
+		return setDefaultLinks()
+	} else {
+		// otherwise append default links to custom links.
+		// If a default Link is already present, override the custom links with the default one
+		links := new([]Link)
+		for _, link := range *inLinks {
+			rel := link.Rel
+			if _, exist := DefaultLinks[rel]; !exist {
+				*links = append(*links, link)
+			}
+		}
+		return append(*links, setDefaultLinks()...)
+	}
+}
+
 // SetLicenseLinks sets publication and status links
 // l.ContentID must have been set before the call
 func SetLicenseLinks(l *License, c index.Content) error {
 
-	// set the links
-	l.Links = SetDefaultLinks()
+	// append default links to custom links
+	l.Links = appendDefaultLinks(&l.Links)
 
 	for i := 0; i < len(l.Links); i++ {
-		// publication link
+		// set publication link
 		if l.Links[i].Rel == "publication" {
 			l.Links[i].Href = strings.Replace(l.Links[i].Href, "{publication_id}", l.ContentID, 1)
 			l.Links[i].Type = c.Type
@@ -201,10 +220,16 @@ func SetLicenseLinks(l *License, c index.Content) error {
 			l.Links[i].Title = c.Location
 			l.Links[i].Checksum = c.Sha256
 		}
-		// status link
+		// set status link
 		if l.Links[i].Rel == "status" {
 			l.Links[i].Href = strings.Replace(l.Links[i].Href, "{license_id}", l.ID, 1)
 			l.Links[i].Type = api.ContentType_LSD_JSON
+		}
+
+		// set hint page link
+		if l.Links[i].Rel == "hint" {
+			l.Links[i].Href = strings.Replace(l.Links[i].Href, "{license_id}", l.ID, 1)
+			l.Links[i].Type = api.ContentType_TEXT_HTML
 		}
 	}
 

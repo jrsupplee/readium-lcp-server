@@ -20,8 +20,9 @@ type Metadata struct {
 	Description        string        `json:"description,omitempty"`
 	Language           MultiString   `json:"language,omitempty"`
 	ReadingProgression string        `json:"readingProgression,omitempty"`
-	Modified           time.Time     `json:"modified,omitempty"`
-	Published          Date          `json:"published,omitempty"`
+	//
+	Modified  *time.Time `json:"modified,omitempty"`
+	Published Date       `json:"published,omitempty"`
 	// contributors
 	Publisher   Contributors `json:"publisher,omitempty"`
 	Artist      Contributors `json:"artist,omitempty"`
@@ -37,10 +38,11 @@ type Metadata struct {
 	Penciler    Contributors `json:"penciler,omitempty"`
 	Translator  Contributors `json:"translator,omitempty"`
 	// other descriptive metadata
-	Subject       Subjects `json:"subject,omitempty"`
-	Duration      int      `json:"duration,omitempty"`
-	NumberOfPages int      `json:"numberOfPages,omitempty"`
-	Abridged      bool     `json:"abridged,omitempty"`
+	Subject Subjects `json:"subject,omitempty"`
+	// FIXME: Duration is a float in the spec
+	Duration      int  `json:"duration,omitempty"`
+	NumberOfPages int  `json:"numberOfPages,omitempty"`
+	Abridged      bool `json:"abridged,omitempty"`
 	// collections & series
 	BelongsTo *BelongsTo `json:"belongsTo,omitempty"`
 
@@ -70,6 +72,11 @@ func (d *DateOrDatetime) UnmarshalJSON(b []byte) error {
 
 // MarshalJSON marshalls DateOrDatetime
 func (d DateOrDatetime) MarshalJSON() ([]byte, error) {
+
+	//if time.Time(d).IsZero() {
+	//println("Zero dateordatetime")
+	//return nil, nil
+	//}
 
 	return json.Marshal(time.Time(d))
 }
@@ -118,7 +125,7 @@ type Meta struct {
 type Properties struct {
 	Contains     []string   `json:"contains,omitempty"`
 	Layout       string     `json:"layout,omitempty"`
-	MediaOverlay string     `json:"media-overlay,omitempty"`
+	MediaOverlay string     `json:"mediaOverlay,omitempty"`
 	Orientation  string     `json:"orientation,omitempty"`
 	Overflow     string     `json:"overflow,omitempty"`
 	Page         string     `json:"page,omitempty"`
@@ -132,7 +139,7 @@ type Encrypted struct {
 	Profile        string `json:"profile,omitempty"`
 	Algorithm      string `json:"algorithm,omitempty"`
 	Compression    string `json:"compression,omitempty"`
-	OriginalLength int    `json:"original-length,omitempty"`
+	OriginalLength int    `json:"originalLength,omitempty"`
 }
 
 // Subjects is an array of subjects
@@ -141,7 +148,7 @@ type Subjects []Subject
 // Subject of a publication
 type Subject struct {
 	Name   string `json:"name"`
-	SortAs string `json:"sort_as,omitempty"`
+	SortAs string `json:"sortAs,omitempty"`
 	Scheme string `json:"scheme,omitempty"`
 	Code   string `json:"code,omitempty"`
 }
